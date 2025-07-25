@@ -12,7 +12,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { Enhancements, AspectRatio, Filter } from '@/types/editor';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { Sparkles, Loader2, Contrast, Sun, Droplets, RectangleHorizontal, Square, RectangleVertical } from 'lucide-react';
+import { Sparkles, Loader2, Contrast, Sun, Droplets, RectangleHorizontal, Square, RectangleVertical, Wand2, Crop, Wand, ImageMinus, Presentation, Instagram } from 'lucide-react';
 
 type SidebarToolsProps = {
   enhancements: Enhancements;
@@ -21,7 +21,9 @@ type SidebarToolsProps = {
   setAspectRatio: Dispatch<SetStateAction<AspectRatio>>;
   filter: Filter;
   setFilter: Dispatch<SetStateAction<Filter>>;
-  onGenerate: (prompt: string) => void;
+  onGenerateBackground: (prompt: string) => void;
+  onRemoveBackground: () => void;
+  onEnhanceImage: () => void;
   isGenerating: boolean;
   isImageLoaded: boolean;
 };
@@ -34,10 +36,13 @@ const FILTERS: Filter[] = [
   { name: 'Moon', class: 'filter-moon' },
   { name: 'Lark', class: 'filter-lark' },
   { name: 'Slumber', class: 'filter-slumber' },
+  { name: 'Clarendon', class: 'filter-clarendon' },
+  { name: 'Juno', class: 'filter-juno' },
+  { name: 'Ludwig', class: 'filter-ludwig' },
 ];
 
 export default function SidebarTools({
-  enhancements, setEnhancements, aspectRatio, setAspectRatio, filter, setFilter, onGenerate, isGenerating, isImageLoaded
+  enhancements, setEnhancements, aspectRatio, setAspectRatio, filter, setFilter, onGenerateBackground, onRemoveBackground, onEnhanceImage, isGenerating, isImageLoaded
 }: SidebarToolsProps) {
   const [aiPrompt, setAiPrompt] = useState('');
 
@@ -45,38 +50,46 @@ export default function SidebarTools({
     setEnhancements(prev => ({ ...prev, [key]: value }));
   };
 
-  const apectRatioIcons = {
-    'free': <RectangleHorizontal className="h-5 w-5" />,
-    'square': <Square className="h-5 w-5" />,
-    'story': <RectangleVertical className="h-5 w-5" />,
-    'reels': <RectangleVertical className="h-5 w-5" />,
-    '4:5': <RectangleVertical className="h-5 w-5" />,
-    '16:9': <RectangleHorizontal className="h-5 w-5" />,
-  }
+  const aspectRatios: { name: AspectRatio; icon: React.ReactNode; label: string }[] = [
+    { name: 'free', icon: <Crop className="h-5 w-5" />, label: 'Free' },
+    { name: 'square', icon: <Square className="h-5 w-5" />, label: '1:1' },
+    { name: '4:5', icon: <Instagram className="h-5 w-5" />, label: '4:5' },
+    { name: 'story', icon: <RectangleVertical className="h-5 w-5" />, label: 'Story' },
+    { name: '16:9', icon: <Presentation className="h-5 w-5" />, label: '16:9' },
+    { name: 'reels', icon: <Instagram className="h-5 w-5" />, label: 'Reels' },
+  ];
 
   return (
     <ScrollArea className="h-full p-4">
-      <Accordion type="multiple" defaultValue={['enhancements', 'ai']} className="w-full">
+      <Accordion type="multiple" defaultValue={['ai', 'enhancements', 'filters', 'aspectRatio']} className="w-full">
         <AccordionItem value="ai">
           <AccordionTrigger className="font-headline">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              AI Background
+              AI Tools
             </div>
           </AccordionTrigger>
           <AccordionContent className="space-y-4 pt-2">
-            <p className="text-sm text-muted-foreground">Describe a new background for your image.</p>
-            <Textarea
-              placeholder="e.g., 'A beautiful sunset over a serene beach'"
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              disabled={!isImageLoaded || isGenerating}
-              className="h-24"
-            />
-            <Button onClick={() => onGenerate(aiPrompt)} disabled={!isImageLoaded || isGenerating} className="w-full">
-              {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-              Generate
+            <Button onClick={onEnhanceImage} disabled={!isImageLoaded || isGenerating} className="w-full justify-start" variant="outline">
+              <Wand className="mr-2 h-4 w-4" /> Auto Enhance
             </Button>
+            <Button onClick={onRemoveBackground} disabled={!isImageLoaded || isGenerating} className="w-full justify-start" variant="outline">
+              <ImageMinus className="mr-2 h-4 w-4" /> Remove Background
+            </Button>
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Or, generate a new background:</Label>
+              <Textarea
+                placeholder="e.g., 'A beautiful sunset over a serene beach'"
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                disabled={!isImageLoaded || isGenerating}
+                className="h-24"
+              />
+              <Button onClick={() => onGenerateBackground(aiPrompt)} disabled={!isImageLoaded || isGenerating} className="w-full">
+                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                Generate Background
+              </Button>
+            </div>
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="enhancements">
@@ -150,8 +163,8 @@ export default function SidebarTools({
         <AccordionItem value="aspectRatio">
           <AccordionTrigger className="font-headline">Aspect Ratio</AccordionTrigger>
           <AccordionContent className="pt-2">
-             <ToggleGroup 
-                type="single" 
+             <ToggleGroup
+                type="single"
                 value={aspectRatio}
                 onValueChange={(value: AspectRatio) => {
                     if (value) setAspectRatio(value)
@@ -159,10 +172,10 @@ export default function SidebarTools({
                 disabled={!isImageLoaded}
                 className="grid grid-cols-3 gap-2"
             >
-                {(Object.keys(apectRatioIcons) as AspectRatio[]).map((ratio) => (
-                    <ToggleGroupItem key={ratio} value={ratio} aria-label={ratio} className="flex flex-col h-14 gap-1">
-                        {apectRatioIcons[ratio]}
-                        <span className="text-xs capitalize">{ratio}</span>
+                {aspectRatios.map((ratio) => (
+                    <ToggleGroupItem key={ratio.name} value={ratio.name} aria-label={ratio.name} className="flex flex-col h-14 gap-1">
+                        {ratio.icon}
+                        <span className="text-xs capitalize">{ratio.label}</span>
                     </ToggleGroupItem>
                 ))}
             </ToggleGroup>

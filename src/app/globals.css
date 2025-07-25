@@ -79,4 +79,7 @@ body {
   .filter-moon { filter: grayscale(1) contrast(1.1) brightness(1.1); }
   .filter-lark { filter: contrast(.9); }
   .filter-slumber { filter: saturate(.66) brightness(1.05); }
+  .filter-clarendon { filter: contrast(1.2) saturate(1.35); }
+  .filter-juno { filter: contrast(1.15) saturate(1.65); }
+  .filter-ludwig { filter: contrast(1.05) saturate(2); }
 }
